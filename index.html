@@ -231,6 +231,18 @@
                     <!-- Item hadiah akan ditambahkan di sini oleh JavaScript -->
                 </ul>
             </div>
+
+            <!-- Kolom Roda Putar -->
+            <div id="wheelWrapper" class="flex items-center justify-center order-1 lg:order-2 relative">
+                <div class="wheel-container">
+                    <div class="pointer"></div>
+                    <canvas id="wheel" width="450" height="450"></canvas>
+                    <button id="spinBtn">Spin</button>
+                </div>
+                 <button id="fullscreenBtn" class="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-200 transition z-20">
+                    <!-- Ikon akan diubah oleh JS -->
+                </button>
+            </div>
         </main>
     </div>
 
