@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beauty Clinic - Spin Wheel Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #FDFBF8 0%, #F5E6D3 50%, #EDD9C0 100%);
+            background-attachment: fixed;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(230, 198, 138, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+        .gold-gradient {
+            background: linear-gradient(145deg, #E6C68A, #D4AF37, #B8860B);
+            box-shadow: 0 8px 16px rgba(184, 134, 11, 0.3);
+        }
+        .wheel-container {
+            position: relative;
+            width: 450px;
+            height: 450px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 20px 40px rgba(184, 134, 11, 0.3));
+        }
+        .wheel-container::before {
+            content: '';
+            position: absolute;
+            width: 480px;
+            height: 480px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(230, 198, 138, 0.2) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        #wheel {
+            transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 50%;
+            border: 12px solid #D4AF37;
+            box-shadow: 
+                0 0 30px rgba(212, 175, 55, 0.5),
+                0 0 60px rgba(230, 198, 138, 0.3),
+                inset 0 0 20px rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-top: 60px solid #B8860B;
+            z-index: 10;
+            filter: drop-shadow(0 4px 8px rgba(184, 134, 11, 0.6)) drop-shadow(0 0 20px rgba(230, 198, 138, 0.8));
+        }
+        #spinBtn {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(145deg, #ffffff, #f5f5f5);
+            border: 8px solid #D4AF37;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #B8860B;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 8px 16px rgba(184, 134, 11, 0.3),
+                0 0 30px rgba(212, 175, 55, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.8);
+        }
+        #spinBtn:hover {
+            transform: scale(1.15);
+            background: linear-gradient(145deg, #FFF8E7, #FFF0D4);
+            box-shadow: 
+                0 12px 24px rgba(184, 134, 11, 0.4),
+                0 0 40px rgba(212, 175, 55, 0.6),
+                inset 0 2px 4px rgba(255, 255, 255, 0.9);
+        }
+        #spinBtn:active {
+            transform: scale(1.05);
+        }
+        #spinBtn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            transform: scale(1);
+            filter: grayscale(0.3);
+        }
+        /* Tata letak default untuk wrapper roda */
+        #wheelWrapper {
+            flex-direction: column;
+        }
+        /* Fullscreen Styles */
+        body.wheel-fullscreen {
+            overflow: hidden;
+        }
+        /* Menggunakan ID untuk spesifisitas yang lebih tinggi agar bisa menimpa style sebelumnya */
+        .wheel-fullscreen #wheelWrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #FDFBF8;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .wheel-fullscreen .hide-on-fullscreen {
+            display: none;
+        }
+        .wheel-fullscreen .wheel-container {
+            transform: scale(1.2);
+        }
+        @media (min-width: 768px) {
+            .wheel-fullscreen .wheel-container {
+                transform: scale(1.5);
+            }
+        }
+        /* Logo Fullscreen */
+        #fullscreenLogo {
+            display: none;
+            position: absolute;
+            top: 50%;
+            right: 40px;
+            transform: translateY(-50%);
+            max-width: 350px;
+            max-height: 150px;
+            z-index: 10;
+        }
+        .wheel-fullscreen #fullscreenLogo {
+            display: block;
+        }
+        /* Confetti Animation */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #E6C68A;
+            position: fixed;
+            top: -10px;
+            z-index: 9999;
+            animation: confetti-fall linear forwards;
+        }
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-10 hide-on-fullscreen">
+            <h1 class="font-serif text-5xl md:text-6xl font-bold mb-4" style="
+                background: linear-gradient(135deg, #D4AF37, #B8860B, #8B6914);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                text-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+                filter: drop-shadow(0 2px 4px rgba(184, 134, 11, 0.2));
+            ">Lumiera Prize Wheel</h1>
+            <p class="text-gray-600 mt-2 text-lg font-medium tracking-wide">✨ Atur hadiah dan putar roda untuk pelanggan setia! ✨</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <!-- Kolom Kontrol Hadiah -->
+            <div class="bg-white p-6 md:p-8 rounded-2xl order-2 lg:order-1 hide-on-fullscreen" style="
+                background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,248,240,0.95));
+                backdrop-filter: blur(10px);
+                box-shadow: 
+                    0 20px 40px rgba(184, 134, 11, 0.15),
+                    0 0 0 1px rgba(212, 175, 55, 0.2),
+                    inset 0 1px 0 rgba(255,255,255,0.8);
+                border: 2px solid rgba(230, 198, 138, 0.3);
+            ">
+                <h2 class="font-serif text-3xl font-bold mb-6" style="
+                    background: linear-gradient(135deg, #D4AF37, #B8860B);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                ">🎁 Daftar Hadiah</h2>
+                <div class="flex items-center gap-3 mb-6">
+                    <input type="text" id="itemInput" placeholder="Tulis hadiah baru..." class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all shadow-sm hover:shadow-md" style="background: rgba(255,255,255,0.9);">
+                    <button id="addItemBtn" class="gold-gradient text-white font-bold py-3 px-6 rounded-xl hover:opacity-90 transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95">Tambah</button>
+                </div>
+                <ul id="itemList" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                    <!-- Item hadiah akan ditambahkan di sini oleh JavaScript -->
+                </ul>
+            </div>
+
+            <!-- Kolom Roda Putar -->
+            <div id="wheelWrapper" class="flex items-center justify-center order-1 lg:order-2 relative">
+                <img id="fullscreenLogo" src="logo.png" alt="Logo">
+                <div class="wheel-container">
+                    <div class="pointer"></div>
+                    <canvas id="wheel" width="450" height="450"></canvas>
+                    <button id="spinBtn">Spin</button>
+                </div>
+                 <button id="fullscreenBtn" class="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-200 transition z-20">
+                    <!-- Ikon akan diubah oleh JS -->
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal untuk Hasil -->
+    <div id="resultModal" class="fixed inset-0 flex items-center justify-center p-4 z-[1000] transition-opacity duration-300 opacity-0 pointer-events-none" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);">
+        <div id="modalContent" class="rounded-3xl p-8 md:p-12 text-center transform scale-95 transition-all duration-500 max-w-lg" style="
+            background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,248,230,0.98));
+            box-shadow: 
+                0 30px 60px rgba(184, 134, 11, 0.3),
+                0 0 0 1px rgba(230, 198, 138, 0.3),
+                inset 0 1px 0 rgba(255,255,255,0.9);
+            border: 3px solid rgba(212, 175, 55, 0.4);
+        ">
+            <img src="logo.png" alt="Lumiera Luzelle Logo" class="mx-auto mb-6" style="
+                max-width: 250px;
+                max-height: 100px;
+                filter: drop-shadow(0 4px 12px rgba(212, 175, 55, 0.3));
+            ">
+            
+            <h3 id="congratsText" class="font-serif text-4xl mb-4" style="
+                background: linear-gradient(135deg, #D4AF37, #B8860B);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                text-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+            ">Selamat!</h3>
+            <p id="messageText" class="text-gray-700 mb-6 text-xl font-medium">Kamu memenangkan:</p>
+            <p id="prizeResult" class="text-5xl font-bold mb-10" style="
+                background: linear-gradient(135deg, #E6C68A, #D4AF37, #B8860B);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                filter: drop-shadow(0 4px 8px rgba(212, 175, 55, 0.3));
+            "></p>
+            <button id="closeModalBtn" class="gold-gradient text-white font-bold py-4 px-10 rounded-xl hover:opacity-90 transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 text-lg">Tutup</button>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Referensi Elemen DOM
+            const canvas = document.getElementById('wheel');
+            const spinBtn = document.getElementById('spinBtn');
+            const itemInput = document.getElementById('itemInput');
+            const addItemBtn = document.getElementById('addItemBtn');
+            const itemList = document.getElementById('itemList');
+            const resultModal = document.getElementById('resultModal');
+            const modalContent = document.getElementById('modalContent');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const prizeResult = document.getElementById('prizeResult');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+            const ctx = canvas.getContext('2d');
+            
+            const iconEnterFullscreen = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`;
+            const iconExitFullscreen = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>`;
+
+            // Data dan State
+            let options = [
+                'Nuvo Handsanitizer',
+                'Zonk',
+                'Nuvo Handsanitizer',
+                'Zonk',
+                'Diskon Eyelash',
+                'Zonk',
+                'Nuvo Handsanitizer',
+                'Zonk',
+                'PDT Facial Voucher',
+                'Zonk',
+                'Nuvo Handsanitizer',
+                'Free Recovery Pump'
+            ];
+            let startAngle = 0;
+            let arc = Math.PI / (options.length / 2);
+            let spinTimeout = null;
+            let spinAngleStart = 10;
+            let spinTime = 0;
+            let spinTimeTotal = 0;
+            let isSpinning = false;
+
+            // Palet Warna
+            const colors = ["#FDFBF8", "#FDE68A"]; // Bone White & Light Gold
+            const text_color = "#9C6F0D"; // Dark Gold for text
+
+            // --- Fungsi untuk Memecah Teks menjadi Beberapa Baris ---
+            function wrapText(ctx, text, maxWidth) {
+                const words = text.split(' ');
+                const lines = [];
+                let currentLine = words[0];
+
+                for (let i = 1; i < words.length; i++) {
+                    const word = words[i];
+                    const width = ctx.measureText(currentLine + ' ' + word).width;
+                    if (width < maxWidth) {
+                        currentLine += ' ' + word;
+                    } else {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    }
+                }
+                lines.push(currentLine);
+                return lines;
+            }
+
+            // --- Fungsi untuk Menggambar Roda ---
+            function drawWheel() {
+                const outsideRadius = 210;
+                const textRadius = 160;
+                const insideRadius = 0;
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = '#D4AF37';
+                ctx.lineWidth = 1;
+                
+                arc = Math.PI / (options.length / 2);
+
+                ctx.save();
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(startAngle); // Terapkan rotasi utama di sini
+
+                for (let i = 0; i < options.length; i++) {
+                    const angle = i * arc;
+                    ctx.fillStyle = colors[i % colors.length];
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, outsideRadius, angle, angle + arc, false);
+                    ctx.arc(0, 0, insideRadius, angle + arc, angle, true);
+                    ctx.stroke();
+                    ctx.fill();
+
+                    ctx.save();
+                    ctx.fillStyle = text_color;
+                    ctx.shadowColor = "rgba(0,0,0,0.1)";
+                    ctx.shadowOffsetX = 1;
+                    ctx.shadowOffsetY = 1;
+                    ctx.font = '13px Inter';
+                    
+                    // Hitung lebar maksimal berdasarkan arc
+                    const maxTextWidth = 2 * textRadius * Math.sin(arc / 2) * 0.8; // 0.8 untuk margin
+                    
+                    ctx.translate(
+                        Math.cos(angle + arc / 2) * textRadius,
+                        Math.sin(angle + arc / 2) * textRadius
+                    );
+                    ctx.rotate(angle + arc / 2 + Math.PI / 2);
+                    
+                    const text = options[i];
+                    const lines = wrapText(ctx, text, maxTextWidth);
+                    const lineHeight = 16;
+                    const totalHeight = (lines.length - 1) * lineHeight;
+                    const startY = -totalHeight / 2;
+                    
+                    lines.forEach((line, index) => {
+                        const lineWidth = ctx.measureText(line).width;
+                        ctx.fillText(line, -lineWidth / 2, startY + index * lineHeight);
+                    });
+                    
+                    ctx.restore();
+                }
+                ctx.restore();
+            }
+            
+            // --- Fungsi untuk Memutar Roda ---
+            function rotate() {
+                spinAngleStart = Math.random() * 10 + 10;
+                spinTime = 0;
+                spinTimeTotal = 20000; // Durasi putaran: 20 detik
+                rotateWheel();
+            }
+
+            function rotateWheel() {
+                spinTime += 30;
+                if (spinTime >= spinTimeTotal) {
+                    stopRotateWheel();
+                    return;
+                }
+                const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
+                startAngle += (spinAngle * Math.PI / 180);
+                drawWheel();
+                spinTimeout = requestAnimationFrame(rotateWheel);
+            }
+
+            function stopRotateWheel() {
+                cancelAnimationFrame(spinTimeout);
+                const degreesPerSlice = 360 / options.length;
+                // Sudut akhir dari rotasi roda
+                const finalAngle = (startAngle * 180 / Math.PI) % 360;
+                // Pointer berada di posisi 270 derajat (atas). Kita cari irisan mana yang berada di posisi tersebut.
+                // Kita hitung sudut efektif pada roda asli yang telah diputar ke atas.
+                const effectiveAngle = (360 - finalAngle + 270) % 360;
+                const winningIndex = Math.floor(effectiveAngle / degreesPerSlice);
+                
+                const text = options[winningIndex % options.length]; // Modulo untuk keamanan
+                
+                showResult(text);
+                isSpinning = false;
+                spinBtn.disabled = false;
+            }
+
+            function easeOut(t, b, c, d) {
+                const ts = (t /= d) * t;
+                const tc = ts * t;
+                return b + c * (tc + -3 * ts + 3 * t);
+            }
+            
+            // --- Manajemen UI ---
+            function updateItemList() {
+                itemList.innerHTML = '';
+                options.forEach((item, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'flex justify-between items-center p-4 rounded-xl transition-all hover:scale-102';
+                    li.style.cssText = `
+                        background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,250,240,0.8));
+                        box-shadow: 0 2px 8px rgba(184, 134, 11, 0.1);
+                        border: 1px solid rgba(230, 198, 138, 0.3);
+                    `;
+                    li.innerHTML = `
+                        <span class="text-gray-800 font-medium" style="text-shadow: 0 1px 2px rgba(0,0,0,0.05);">${item}</span>
+                        <button data-index="${index}" class="removeItemBtn text-red-500 hover:text-red-700 font-bold text-xl transition-all hover:scale-125 active:scale-95" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));">&times;</button>
+                    `;
+                    li.addEventListener('mouseenter', () => {
+                        li.style.boxShadow = '0 4px 12px rgba(184, 134, 11, 0.2)';
+                        li.style.borderColor = 'rgba(212, 175, 55, 0.5)';
+                    });
+                    li.addEventListener('mouseleave', () => {
+                        li.style.boxShadow = '0 2px 8px rgba(184, 134, 11, 0.1)';
+                        li.style.borderColor = 'rgba(230, 198, 138, 0.3)';
+                    });
+                    itemList.appendChild(li);
+                });
+                drawWheel(); // Gambar ulang roda setiap kali daftar berubah
+            }
+            
+            function handleAddItem() {
+                const newItem = itemInput.value.trim();
+                if (newItem && options.length < 20) { // Batasi jumlah item
+                    options.push(newItem);
+                    itemInput.value = '';
+                    updateItemList();
+                } else if (options.length >= 20) {
+                    alert("Maksimal 20 hadiah.");
+                }
+            }
+
+            function handleRemoveItem(e) {
+                if (e.target.classList.contains('removeItemBtn')) {
+                    if (options.length <= 2) {
+                        alert("Minimal harus ada 2 hadiah.");
+                        return;
+                    }
+                    const index = parseInt(e.target.dataset.index, 10);
+                    options.splice(index, 1);
+                    updateItemList();
+                }
+            }
+            
+            // --- Fungsi untuk Membuat Confetti ---
+            function createConfetti() {
+                const colors = ['#E6C68A', '#D4AF37', '#B8860B', '#FDE68A', '#FDFBF8'];
+                const confettiCount = 80;
+                
+                for (let i = 0; i < confettiCount; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('confetti');
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    confetti.style.animationDelay = (Math.random() * 0.5) + 's';
+                    confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                    confetti.style.height = (Math.random() * 10 + 5) + 'px';
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    
+                    document.body.appendChild(confetti);
+                    
+                    // Hapus confetti setelah animasi selesai
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 5000);
+                }
+            }
+            
+            function showResult(prize) {
+                const congratsText = document.getElementById('congratsText');
+                const messageText = document.getElementById('messageText');
+                
+                prizeResult.textContent = prize;
+                
+                // Ubah teks jika mendapat Zonk
+                if (prize.toLowerCase() === 'zonk') {
+                    congratsText.textContent = 'Yah!';
+                    messageText.textContent = 'Kamu mendapat:';
+                } else {
+                    congratsText.textContent = 'Selamat!';
+                    messageText.textContent = 'Kamu memenangkan:';
+                    createConfetti(); // Tampilkan confetti hanya jika bukan zonk
+                }
+                
+                resultModal.classList.remove('opacity-0', 'pointer-events-none');
+                modalContent.classList.remove('scale-95');
+            }
+
+            function hideResult() {
+                resultModal.classList.add('opacity-0', 'pointer-events-none');
+                modalContent.classList.add('scale-95');
+            }
+
+            // --- Event Listeners ---
+            spinBtn.addEventListener('click', () => {
+                if (isSpinning) return;
+                isSpinning = true;
+                spinBtn.disabled = true;
+                rotate();
+            });
+
+            addItemBtn.addEventListener('click', handleAddItem);
+            itemInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleAddItem();
+                }
+            });
+
+            itemList.addEventListener('click', handleRemoveItem);
+
+            closeModalBtn.addEventListener('click', hideResult);
+            resultModal.addEventListener('click', (e) => {
+                if(e.target === resultModal) {
+                    hideResult();
+                }
+            });
+
+            fullscreenBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        alert(`Gagal masuk mode fullscreen: ${err.message}`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+                if (document.fullscreenElement) {
+                    document.body.classList.add('wheel-fullscreen');
+                    fullscreenBtn.innerHTML = iconExitFullscreen;
+                } else {
+                    document.body.classList.remove('wheel-fullscreen');
+                    fullscreenBtn.innerHTML = iconEnterFullscreen;
+                }
+                 // Redraw wheel to ensure it's sharp
+                setTimeout(drawWheel, 100);
+            });
+
+
+            // Inisialisasi
+            fullscreenBtn.innerHTML = iconEnterFullscreen;
+            updateItemList();
+        });
+    </script>
+</body>
+</html>
+
